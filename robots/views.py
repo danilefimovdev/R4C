@@ -5,6 +5,8 @@ from datetime import timedelta
 from django.http import JsonResponse, HttpResponse, HttpRequest
 from django.views import View
 
+from customers.models import Customer
+from orders.models import Order
 from robots.forms import RobotForm
 from robots.models import Robot
 from services import prepare_robots_data_for_xlsx_pages, get_time_filtered_robots, get_time_filtered_models_data, \
@@ -45,7 +47,7 @@ def get_week_report_xlsx(request: HttpRequest) -> HttpResponse:
 
     datetime_, timestamp = get_datetime_with_timedelta_from_now(timedelta_=timedelta(weeks=1))
     filtered_robots = get_time_filtered_robots(datetime_=datetime_)
-    if filtered_robots is None:
+    if not filtered_robots:
         return HttpResponse('No robot was produced in the past week')
     models_data = get_time_filtered_models_data(datetime_=datetime_)
     prepared_pages_data = prepare_robots_data_for_xlsx_pages(models=models_data, filtered_robots=filtered_robots)
@@ -61,6 +63,7 @@ def get_week_report_xlsx(request: HttpRequest) -> HttpResponse:
             content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         )
     response['Content-Disposition'] = f'attachment; filename={timestamp}.xlsx'
+
     return response
 
 
